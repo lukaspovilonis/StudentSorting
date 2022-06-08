@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WordsCounter</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body onload="prepare()">
+
+<h1>Spring Boot</h1>
+
+<h4>Ajax submit:</h4>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<form id="my_form">
+    <input accept=".txt" id="files" name="files" type="file"/><br/><br/>
+    <button id="submit_1" name="submit_1" type="button">submit</button>
+    <select id="sorting" name="sortingAlgorithm">
+    </select>
+</form>
+
+<span id="result">
+</span>
+
+
+<script>
+    function prepare() {
+
+        select = document.getElementById('sorting');
+        $.ajax({
+            url: '/sortingAlgorithms',
+            type: 'GET',
+            dataType: 'json',
+            processData: false,
+            contentType: false,
+            success: function (data) {
+                data.forEach(e => {
+                    var opt = document.createElement('option');
+                    opt.value = e;
+                    opt.innerHTML = e;
+                    select.appendChild(opt);
+                    $('#sorting').add(e);
+                })
+            },
+            error: function (r) {
+                console.log('error', r);
+            }
+        });
+    }
+
+    $('#submit_1').on('click', function () {
+        let data = new FormData($("#my_form")[0]);
+
+        $.ajax({
+            url: '/uploadFiles',
+            type: 'POST',
+            data: data,
+            dataType: 'json',
+            processData: false,
+            contentType: false,
+            success: function (data) {
+                table = document.createElement('table')
+                table.setAttribute("id", "resultTable")
+                var row_width = 60;
+
+
+                var list = "";
+                list += "Student" + new Array(row_width + 1).join(" ") + "Mark\n";
+                data.forEach(e => {
+                    tr = document.createElement('tr')
+                    td = document.createElement('td')
+                    td.textContent = e.name
+                    tr.append(td)
+                    td = document.createElement("td")
+                    td.textContent = e.mark
+                    tr.append(td)
+                    table.append(tr)
+                    list += e.name + new Array(row_width - e.name.length + 9).join(" ");
+                    list += e.mark;
+                    list += "\n";
+
+                })
+                var hiddenElement = document.createElement('a');
+
+                hiddenElement.href = 'data:attachment/text,' + encodeURI(list)
+                hiddenElement.target = '_blank'
+                hiddenElement.download = 'sortedList.txt'
+                hiddenElement.click()
+
+                $('#resultTable').remove()
+                $('#result').append(table)
+
+            },
+            error: function (r) {
+                console.log('error', r);
+            }
+        });
+    });
+</script>
+<hr/>
+
+</body>
+</html>
